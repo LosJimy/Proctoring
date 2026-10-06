@@ -1,0 +1,19 @@
+{
+    "name": "proctoring",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "engines": {
+        "node": ">=22"
+    },
+    "scripts": {
+        "dev:api": "pnpm --filter @proctoring/api dev",
+        "dev:panel": "pnpm --filter @proctoring/panel dev",
+        "dev:exam": "pnpm --filter @proctoring/exam dev",
+        "build": "pnpm -r build",
+        "test": "pnpm -r test",
+        "lint": "pnpm -r lint",
+        "db:migrate": "pnpm --filter @proctoring/api db:migrate",
+        "db:studio": "pnpm --filter @proctoring/api db:studio"
+    }
+}
