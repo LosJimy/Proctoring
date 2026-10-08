@@ -14,7 +14,6 @@ datasource db {
 enum Rol {
   ADMIN
   COORDINADOR
-  DOCENTE
 }
 
 enum Estado_Sesion {
@@ -64,7 +63,7 @@ model Usuario {
   Activo         Boolean  @default(true)
   Creado_En      DateTime @default(now())
 
-  profesor_asignaturas Profesor_Asignatura[]
+  auditorias AuditoriaAcceso[]
 }
 
 // ============================================================
@@ -95,20 +94,8 @@ model Asignatura {
   Anio_Semestre      String
 
   carrera_asignaturas Carrera_Asignatura[]
-  profesores          Profesor_Asignatura[]
   estudiantes Estudiante_Asignatura[]
   pruebas Prueba[]
-}
-
-model Profesor_Asignatura {
-  ID_Profesor   Int
-  ID_Asignatura Int
-
-  profesor   Usuario    @relation(fields: [ID_Profesor], references: [ID_Usuario], onDelete: Cascade)
-  asignatura Asignatura @relation(fields: [ID_Asignatura], references: [ID_Asignatura], onDelete: Cascade)
-
-  @@id([ID_Profesor, ID_Asignatura])
-  @@index([ID_Asignatura])
 }
 
 model Estudiante {
@@ -194,6 +181,21 @@ model Revision_Incidente {
   incidente Incidente @relation(fields: [ID_Incidente], references: [ID_Incidente], onDelete: Cascade)
 
   @@index([ID_Incidente])
+}
+
+model AuditoriaAcceso {
+  ID_Auditoria Int      @id @default(autoincrement())
+  ID_Usuario   Int
+  ID_Grabacion Int
+  Accion       String   // visualizar | descargar
+  IP           String
+  User_Agent   String?
+  Fecha        DateTime @default(now())
+
+  usuario Usuario @relation(fields: [ID_Usuario], references: [ID_Usuario], onDelete: Cascade)
+
+  @@index([ID_Usuario, Fecha])
+  @@index([ID_Grabacion])
 }
 
 // ============================================================
