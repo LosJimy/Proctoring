@@ -52,17 +52,18 @@ enum Estado_Eliminacion {
 }
 
 // ============================================================
-// IDENTIDAD DEL PERSONAL (admin, coordinador, docente)
+// IDENTIDAD DEL PERSONAL
 // ============================================================
 
 model Usuario {
-  ID_Usuario     serial  @id
-  Nombre         varchar
-  Email          varchar @unique
-  Password_Hash  varchar
+  ID_Usuario     Int      @id @default(autoincrement())
+  Nombre         String
+  Email          String   @unique
+  Password_Hash  String
   Rol            Rol
-  Activo         boolean @default(true)
+  Activo         Boolean  @default(true)
   Creado_En      DateTime @default(now())
+
   profesor_asignaturas Profesor_Asignatura[]
 }
 
@@ -71,17 +72,16 @@ model Usuario {
 // ============================================================
 
 model Carrera {
-  ID_Carrera      serial  @id
-  Nombre_Carrera  varchar
+  ID_Carrera      Int    @id @default(autoincrement())
+  Nombre_Carrera  String
 
   carrera_asignaturas Carrera_Asignatura[]
-  asignaturas Asignatura[]
-  estudiantes  Estudiante[]
+  estudiantes Estudiante[]
 }
 
 model Carrera_Asignatura {
-  ID_Carrera      int
-  ID_Asignatura   int
+  ID_Carrera      Int
+  ID_Asignatura   Int
 
   carrera     Carrera    @relation(fields: [ID_Carrera], references: [ID_Carrera], onDelete: Cascade)
   asignatura Asignatura @relation(fields: [ID_Asignatura], references: [ID_Asignatura], onDelete: Cascade)
@@ -90,21 +90,19 @@ model Carrera_Asignatura {
 }
 
 model Asignatura {
-  ID_Asignatura      serial  @id
-  Nombre_Asignatura  varchar
-  Anio_Semestre      varchar
-  ID_Carrera         int
+  ID_Asignatura      Int    @id @default(autoincrement())
+  Nombre_Asignatura  String
+  Anio_Semestre      String
 
-  carrera     Carrera    @relation(fields: [ID_Carrera], references: [ID_Carrera], onDelete: Cascade)
-
-  profesores  Profesor_Asignatura[]
+  carrera_asignaturas Carrera_Asignatura[]
+  profesores          Profesor_Asignatura[]
   estudiantes Estudiante_Asignatura[]
-  pruebas     Prueba[]
+  pruebas Prueba[]
 }
 
 model Profesor_Asignatura {
-  ID_Profesor int
-  ID_Asignatura   int
+  ID_Profesor   Int
+  ID_Asignatura Int
 
   profesor   Usuario    @relation(fields: [ID_Profesor], references: [ID_Usuario], onDelete: Cascade)
   asignatura Asignatura @relation(fields: [ID_Asignatura], references: [ID_Asignatura], onDelete: Cascade)
@@ -114,13 +112,13 @@ model Profesor_Asignatura {
 }
 
 model Estudiante {
-  ID_Estudiante    serial  @id
-  Nombre           varchar
-  RUT              varchar? // opcional, por si Moodle lo manda
-  Token_Moodle     varchar  @unique   // ID que manda el Campus Virtual
-  Consentimiento   boolean  @default(false)   // según tu decisión
+  ID_Estudiante       Int       @id @default(autoincrement())
+  Nombre              String
+  RUT                 String?
+  Token_Moodle        String    @unique
+  Consentimiento      Boolean   @default(false)
   Consentimiento_Fecha DateTime?
-  ID_Carrera       int
+  ID_Carrera          Int
 
   carrera     Carrera @relation(fields: [ID_Carrera], references: [ID_Carrera], onDelete: Cascade)
 
@@ -129,8 +127,8 @@ model Estudiante {
 }
 
 model Estudiante_Asignatura {
-  ID_Estudiante int
-  ID_Asignatura int
+  ID_Estudiante Int
+  ID_Asignatura Int
 
   estudiante Estudiante @relation(fields: [ID_Estudiante], references: [ID_Estudiante], onDelete: Cascade)
   asignatura Asignatura @relation(fields: [ID_Asignatura], references: [ID_Asignatura], onDelete: Cascade)
@@ -144,15 +142,15 @@ model Estudiante_Asignatura {
 // ============================================================
 
 model Prueba {
-  ID_Prueba          serial  @id
-  Nombre_Prueba      varchar
-  Fecha              DateTime
-  Duracion_Min       int
-  Requiere_Proctoring boolean @default(true)
-  Activa boolean @default(true)
-  Streams_Para_Grabar String @default("[\"CAMARA\",\"PANTALLA\"]")
-  Categorias_Activas String  @default("[]")
-  ID_Asignatura      int
+  ID_Prueba            Int      @id @default(autoincrement())
+  Nombre_Prueba        String
+  Fecha                DateTime
+  Duracion_Min         Int
+  Requiere_Proctoring  Boolean  @default(true)
+  Activa               Boolean  @default(true)
+  Streams_Para_Grabar  String   @default("[\"CAMARA\",\"PANTALLA\"]")
+  Categorias_Activas   String   @default("[]")
+  ID_Asignatura        Int
 
   asignatura Asignatura @relation(fields: [ID_Asignatura], references: [ID_Asignatura], onDelete: Cascade)
 
@@ -166,37 +164,32 @@ model Prueba {
 // ============================================================
 
 model Sesion_Examen {
-  ID_Sesion        serial  @id
-  Token_Acceso     varchar  @unique   // token de un solo uso
-  Token_Expira     DateTime
-  Hora_Inicio      DateTime?
-  Hora_Fin         DateTime?
-  Duracion_Real    int?      // minutos reales
-  Estado           Estado_Sesion @default(PENDING)
-  Nivel_Riesgo     Nivel_Riesgo @default(BAJO)
-  Puntaje_Total    int       @default(0)
-  IP               varchar?
-  User_Agent       varchar?
-  ID_Prueba        int
-  ID_Estudiante    int
+  ID_Sesion     Int      @id @default(autoincrement())
+  Token_Acceso  String   @unique
+  Token_Expira  DateTime
+  Hora_Inicio   DateTime?
+  Hora_Fin      DateTime?
+  Duracion_Real Int?
+  Estado        Estado_Sesion @default(PENDING)
+  Nivel_Riesgo  Nivel_Riesgo  @default(BAJO)
+  Puntaje_Total Int      @default(0)
+  IP            String?
+  User_Agent    String?
+  ID_Prueba     Int
+  ID_Estudiante Int
 
-  prueba    Prueba    @relation(fields: [ID_Prueba], references: [ID_Prueba], onDelete: Cascade)
+  prueba     Prueba @relation(fields: [ID_Prueba], references: [ID_Prueba], onDelete: Cascade)
   estudiante Estudiante @relation(fields: [ID_Estudiante], references: [ID_Estudiante], onDelete: Cascade)
 
   grabaciones Grabacion[]
   incidentes  Incidente[]
-  revisiones Revision_Incidente[]
-
-  @@index([ID_Estudiante])
-  @@index([ID_Prueba])
-  @@index([Estado])
 }
 
 model Revision_Incidente {
-  ID_Revision   serial  @id
-  Veredicto     Veredicto @default(PENDIENTE_REVISION)
-  Fecha         DateTime  @default(now())
-  ID_Incidente  int
+  ID_Revision  Int      @id @default(autoincrement())
+  Veredicto    Veredicto @default(PENDIENTE_REVISION)
+  Fecha        DateTime @default(now())
+  ID_Incidente Int
 
   incidente Incidente @relation(fields: [ID_Incidente], references: [ID_Incidente], onDelete: Cascade)
 
@@ -204,19 +197,19 @@ model Revision_Incidente {
 }
 
 // ============================================================
-// EVIDENCIA MULTIMEDIA (un registro por chunk de 5 segundos)
+// EVIDENCIA MULTIMEDIA
 // ============================================================
 
 model Grabacion {
-  ID_Grabacion          serial  @id
-  Tipo_Stream           Tipo_Stream
-  Indice_Chunk          int
-  Ruta_Video            varchar  @unique   // link al archivo en RustFS/S3
-  Hash_Sha256           varchar?
+  ID_Grabacion        Int      @id @default(autoincrement())
+  Tipo_Stream         Tipo_Stream
+  Indice_Chunk        Int
+  Ruta_Video          String   @unique
+  Hash_Sha256         String?
   Fecha_Eliminacion_Programada DateTime?
-  Estado_Eliminacion     Estado_Eliminacion @default(PENDIENTE)
-  Eliminado_En          DateTime?
-  ID_Sesion             int
+  Estado_Eliminacion  Estado_Eliminacion @default(PENDIENTE)
+  Eliminado_En        DateTime?
+  ID_Sesion           Int
 
   sesion Sesion_Examen @relation(fields: [ID_Sesion], references: [ID_Sesion], onDelete: Cascade)
 
@@ -231,15 +224,15 @@ model Grabacion {
 // ============================================================
 
 model Incidente {
-  ID_Incidente         serial  @id
-  Descripcion          varchar?
-  Tiempo               DateTime  @default(now())    // cuándo ocurrió
-  Duracion             Float // cuánto duró
-  Puntaje_Incidente    Float @default(0)
-  Probabilidad         Float
-  Metadatos            varchar?
-  ID_Categoria         int
-  ID_Sesion            int
+  ID_Incidente      Int @id @default(autoincrement())
+  Descripcion       String?
+  Tiempo            DateTime @default(now())
+  Duracion          Float
+  Puntaje_Incidente Float    @default(0)
+  Probabilidad      Float
+  Metadatos         String?
+  ID_Categoria      Int
+  ID_Sesion         Int
 
   categoria Categoria_Incidente @relation(fields: [ID_Categoria], references: [ID_Categoria], onDelete: Cascade)
   sesion     Sesion_Examen @relation(fields: [ID_Sesion], references: [ID_Sesion], onDelete: Cascade)
@@ -256,24 +249,24 @@ model Incidente {
 // ============================================================
 
 model Categoria_Incidente {
-  ID_Categoria  serial  @id
-  Nombre_Categoria varchar
-  Descripcion   varchar?
-  Activo        boolean @default(true)
+  ID_Categoria      Int     @id @default(autoincrement())
+  Nombre_Categoria  String
+  Descripcion       String?
+  Activo            Boolean @default(true)
 
   incidentes Incidente[]
-  reglas Regla_Puntaje[]
+  reglas     Regla_Puntaje[]
 }
 
 model Regla_Puntaje {
-  ID_Regla_Puntaje serial  @id
-  Puntaje          Float @default(0)
+  ID_Regla_Puntaje Int      @id @default(autoincrement())
+  Puntaje          Float    @default(0)
   Puntaje_Tope     Float    @default(0)
-  Minimo           int      @default(1)
-  Maximo           int      @default(50)
-  Activo           boolean  @default(true)
+  Minimo           Int      @default(1)
+  Maximo           Int      @default(50)
+  Activo           Boolean  @default(true)
   Actualizado_En   DateTime @updatedAt
-  ID_Categoria     int      @unique
+  ID_Categoria     Int      @unique
 
   categoria Categoria_Incidente @relation(fields: [ID_Categoria], references: [ID_Categoria], onDelete: Cascade)
 }
