@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import { z } from 'zod';
 import { prisma } from "../lib/prisma.js";
 import { EstudianteIdentificado, obtenerProveedor } from "../lib/proveedorToken.js";
+import { authSesion } from "../lib/authSesion.js";
 
 export async function sesionesRoutes(app: FastifyInstance) {
     /*
@@ -75,6 +76,24 @@ export async function sesionesRoutes(app: FastifyInstance) {
         }
 
         //5. Crear la sesi[on]
+        const ahora = new Date();
+        const inicioPermitido = new Date(prueba.Fecha);
+        inicioPermitido.setMinutes(inicioPermitido.getMinutes() - 30);
+
+        const finPermitido = new Date(prueba.Fecha);
+        finPermitido.setMinutes(finPermitido.getMinutes() + prueba.Duracion_Min + 10);
+
+        if (ahora < inicioPermitido) {
+            return reply.status(403).send({
+                error: 'El examen aun no comienza',
+                abre: inicioPermitido.toISOString(),
+            });
+        }
+
+        if (ahora > finPermitido) {
+            return reply.status(403).send({ error: "El examen ya termino" });
+        }
+
         const tokenAcceso = crypto.randomBytes(32).toString('hex');
 
         const sesion = await prisma.sesion_Examen.create({
@@ -106,5 +125,130 @@ export async function sesionesRoutes(app: FastifyInstance) {
             },
             consentimiento_previo: consentimientoPrevio,
         });
+    });
+
+    /*
+    * POST /api/sesiones/iniciar
+    * Pending => Iniciada
+    */
+    app.post('/api/sesiones/iniciar', { preHandler: authSesion }, async (req, reply) => {
+        const sesion = req.sesion!;
+
+        if (sesion.Estado === 'INICIADA') {
+            return reply.status(409).send({ error: 'La sesi[on ya fue iniciada' });
+        }
+
+        if (sesion.Estado === 'FINALIZADA') {
+            return reply.status(409).send({ error: 'La sesi[on ya fue finalizada' });
+        }
+
+        const prueba = await prisma.prueba.findUnique({
+            where: { ID_Prueba: sesion.ID_Prueba },
+        });
+
+        const actualizada = await prisma.sesion_Examen.update({
+            where: { ID_Sesion: sesion.ID_Sesion },
+            data: {
+                Estado: 'INICIADA',
+                Hora_Inicio: new Date(),
+            },
+        });
+
+        return {
+            ID_Sesion: actualizada.ID_Sesion,
+            Estado: actualizada.Estado,
+            duracion_min: prueba?.Duracion_Min ?? 0,
+            inicio: actualizada.Hora_Inicio,
+        };
+    });
+
+    /*
+    * POST /api/sesiones/consentimiento
+    */
+    app.post('/api/sesiones/consentimiento', { preHandler: authSesion }, async (req, reply) => {
+        const sesion = req.sesion!;
+
+        const schema = z.object({
+            aceptado: z.boolean(),
+        });
+
+        const parsed = schema.safeParse(req.body);
+        if (!parsed.success) {
+            return reply.status(400).send({ error: 'Datos invalidos' });
+        }
+
+        const { aceptado } = parsed.data;
+
+        await prisma.estudiante.update({
+            where: { ID_Estudiante: sesion.ID_Estudiante },
+            data: {
+                Consentimiento: aceptado,
+                Consentimiento_Fecha: new Date(),
+            },
+        });
+
+        if (!aceptado) {
+            return reply.status(403).send({
+                error: 'No puedes iniciar el examen sin consentir',
+            });
+        }
+
+        return { Consentimiento: aceptado };
+    });
+
+    /*
+    * Post /api/sesiones/heartbeat
+    */
+    app.post('/api/sesiones/heartbeat', { preHandler: authSesion }, async (req, reply) => {
+        const sesion = req.sesion!;
+
+        if (sesion.Estado === 'FINALIZADA') {
+            return reply.status(409).send({ error: "La sesion ya fue finalizada" });
+        }
+
+        await prisma.heartbeat.create({
+            data: {
+                ID_Sesion: sesion.ID_Sesion,
+                IP: req.ip,
+            },
+        });
+
+        return {
+            ID_Sesion: sesion.ID_Sesion,
+            Estado: sesion.Estado,
+            ok: true,
+        };
+    });
+
+    /*
+    * POST /api/sesiones/finalizar
+    */
+    app.post('/api/sesiones/finalizar', { preHandler: authSesion }, async (req, reply) => {
+        const sesion = req.sesion!;
+
+        if (sesion.Estado === 'FINALIZADA') {
+            return reply.status(409).send({ error: 'La sesion ya fue finalizada' });
+        }
+
+        const horaFin = new Date();
+        const duracionReal = sesion.Hora_Inicio
+            ? Math.round((horaFin.getTime() - new Date(sesion.Hora_Inicio).getTime()) / 60000)
+            : 0;
+
+        const actualizada = await prisma.sesion_Examen.update({
+            where: { ID_Sesion: sesion.ID_Sesion },
+            data: {
+                Estado: "FINALIZADA",
+                Hora_Fin: horaFin,
+                Duracion_Real: duracionReal,
+            },
+        });
+
+        return {
+            ID_Sesion: actualizada.ID_Sesion,
+            Estado: actualizada.Estado,
+            Duracion_Real: actualizada.Duracion_Real,
+            Nivel_Riesgo: actualizada.Nivel_Riesgo,
+        };
     });
 }

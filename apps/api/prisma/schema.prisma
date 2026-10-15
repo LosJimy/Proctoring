@@ -170,6 +170,7 @@ model Sesion_Examen {
 
   grabaciones Grabacion[]
   incidentes  Incidente[]
+  latidos Heartbeat[]
 }
 
 model Revision_Incidente {
@@ -244,6 +245,15 @@ model Incidente {
   @@index([ID_Sesion, Tiempo])
   @@index([ID_Categoria])
   @@index([Tiempo])
+}
+
+model Heartbeat {
+  ID_Heartbeat Int      @id @default(autoincrement())
+  Fecha DateTime @default(now())
+  IP String?
+  ID_Sesion    Int
+  sesion Sesion_Examen @relation(fields: [ID_Sesion], references: [ID_Sesion], onDelete: Cascade)
+  @@index([ID_Sesion, Fecha])
 }
 
 // ============================================================
