@@ -207,6 +207,7 @@ model Grabacion {
   ID_Grabacion        Int      @id @default(autoincrement())
   Tipo_Stream         Tipo_Stream
   Indice_Chunk        Int
+  Timestamp           DateTime
   Ruta_Video          String   @unique
   Hash_Sha256         String?
   Fecha_Eliminacion_Programada DateTime?

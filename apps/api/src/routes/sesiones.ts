@@ -43,7 +43,7 @@ export async function sesionesRoutes(app: FastifyInstance) {
             include: { asignatura: true },
         });
         if (!prueba || !prueba.Activa) {
-            return reply.status(400).send({ error: 'Prueba no encontrada' });
+            return reply.status(404).send({ error: 'Prueba no encontrada' });
         }
 
         //3. Revisar que el alumno est[a en la asignatura]

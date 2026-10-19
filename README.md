@@ -133,6 +133,127 @@ POST /api/sesiones/finalizar       Header: Authorization: Bearer <Token_Acceso>
 - El **panel** usa email y contraseña, y devuelve un JWT.
 - El **examen** usa el token de Moodle en el body, y devuelve un `Token_Acceso` que viaja en el header `Authorization`.
 
+### Evidencia (video)
+
+```
+POST /api/evidencia/chunk     Header: Authorization: Bearer <Token_Acceso>
+                              Body: multipart/form-data
+```
+
+#### Contrato
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `tipoStream` | `CAMARA` \| `PANTALLA` | Qué stream se está enviando |
+| `indiceChunk` | entero ≥ 0 | Posición en la línea de tiempo. Empieza en 0, sube de 1 en 1 |
+| `timestamp` | entero (epoch ms) | Momento en que el cliente capturó el chunk |
+| `archivo` | archivo `video/webm` | 5 segundos de video |
+
+**Respuesta 201**
+
+```json
+{
+  "ID_Grabacion": 1,
+  "Ruta_Video": "sesiones/12/CAMARA/217.webm",
+  "tipoStream": "CAMARA",
+  "indiceChunk": 217,
+  "bytes": 384521
+}
+```
+
+**Errores**
+
+| Código | Causa |
+|---|---|
+| 400 | Faltan campos, `tipoStream` inválido, o el archivo viene vacío |
+| 401 | Token de sesión ausente, inválido o expirado |
+| 409 | La sesión no está en estado `INICIADA` |
+| 413 | El archivo supera el límite de 10 MB |
+
+#### Reglas
+
+- Un chunk son **5 segundos**. El cliente los sube en orden.
+- Si un chunk falla, reintentar hasta 3 veces con espera creciente.
+- Reenviar el mismo `indiceChunk` **sobrescribe** el anterior. No genera duplicados.
+- La sesión debe estar en `INICIADA`. Antes o después responde 409.
+- Al terminar, el cliente llama a `POST /api/sesiones/finalizar`.
+
+#### Tamaño de los chunks
+
+| Stream | Resolución | Bitrate | Bytes por chunk de 5 s |
+|---|---|---|---|
+| Cámara | 420p 15 fps | 600 kbps | ~375 KB |
+| Pantalla | 720p 15 fps | 1000 kbps | ~625 KB |
+
+Con 200 estudiantes concurrentes son ~40 requests por segundo.
+
+#### Cómo generar los chunks en el navegador
+
+```javascript
+let indiceActual = 0;
+
+const recorder = new MediaRecorder(stream, {
+    mimeType: 'video/webm;codecs=vp8,opus',
+});
+
+recorder.ondataavailable = async (event) => {
+    if (event.data.size === 0) return;
+
+    const form = new FormData();
+    form.append('tipoStream', 'CAMARA');
+    form.append('indiceChunk', String(indiceActual++));
+    form.append('timestamp', String(Date.now()));
+    form.append('archivo', event.data, 'chunk.webm');
+
+    try {
+        const res = await fetch('http://localhost:3000/api/evidencia/chunk', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${tokenSesion}` },
+            body: form,
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    } catch (err) {
+        await reintentar(form);
+    }
+};
+
+recorder.start(5000);   // emite un chunk cada 5 segundos
+```
+
+#### Configurar la resolución
+
+`MediaRecorder` no controla bitrate ni resolución directamente. El control se hace bajando la resolución en `getUserMedia`:
+
+```javascript
+// Cámara 420p 15 fps
+const camStream = await navigator.mediaDevices.getUserMedia({
+    video: { width: { ideal: 640 }, height: { ideal: 360 }, frameRate: { ideal: 15 } },
+    audio: true,
+});
+
+// Pantalla completa 720p 15 fps
+const screenStream = await navigator.mediaDevices.getDisplayMedia({
+    video: {
+        displaySurface: 'monitor',
+        monitorTypeSurfaces: 'include',
+        selfBrowserSurface: 'exclude',
+        surfaceSwitching: 'exclude',
+    },
+    audio: false,
+});
+```
+
+Los flags de `getDisplayMedia` son experimentales y su soporte varía por navegador. Hay que probarlos en Chrome, Edge y Firefox.
+
+#### Dónde queda el archivo
+
+```
+Bucket: proctoring-video
+Clave:  sesiones/{ID_Sesion}/{CAMARA|PANTALLA}/{indiceChunk}.webm
+```
+
+
 ---
 
 ## Probar con Postman

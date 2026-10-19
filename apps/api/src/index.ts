@@ -5,6 +5,10 @@ import jwt from '@fastify/jwt';
 import { prisma } from './lib/prisma.js';
 import { authRoutes } from './routes/auth.js';
 import { sesionesRoutes } from './routes/sesiones.js';
+import { evidenciaRoutes } from './routes/evidencia.js';
+import { ensureBucket } from './lib/storage.js';
+import multipart from '@fastify/multipart';
+
 
 const app = Fastify({ logger: true });
 
@@ -23,6 +27,16 @@ app.get('/health', async () => {
 await app.register(authRoutes);
 
 await app.register(sesionesRoutes);
+
+await app.register(multipart, {
+    limits: {
+        fileSize: 10 * 1024 * 1024,
+        files: 1,
+    },
+});
+
+await app.register(evidenciaRoutes);
+await ensureBucket();
 
 app.get('/api/db-test', async () => {
     const count = await prisma.usuario.count();
