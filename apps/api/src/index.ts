@@ -8,7 +8,9 @@ import { sesionesRoutes } from './routes/sesiones.js';
 import { evidenciaRoutes } from './routes/evidencia.js';
 import { ensureBucket } from './lib/storage.js';
 import multipart from '@fastify/multipart';
-
+import websocket from '@fastify/websocket';
+import { wsSesionRoutes } from './routes/wsSesion.js';
+import { wsPanelRoutes } from './routes/wsPanel.js';
 
 const app = Fastify({ logger: true });
 
@@ -35,7 +37,13 @@ await app.register(multipart, {
     },
 });
 
+await app.register(websocket, {
+    options: { maxPayload: 65536 }, //64KB max por msg
+});
+
 await app.register(evidenciaRoutes);
+await app.register(wsSesionRoutes);
+await app.register(wsPanelRoutes);
 await ensureBucket();
 
 app.get('/api/db-test', async () => {

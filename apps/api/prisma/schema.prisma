@@ -229,12 +229,14 @@ model Grabacion {
 
 model Incidente {
   ID_Incidente      Int @id @default(autoincrement())
+  Clave_Cliente     String  @unique
   Descripcion       String?
   Tiempo            DateTime @default(now())
   Duracion          Float
   Puntaje_Incidente Float    @default(0)
   Probabilidad      Float
   Metadatos         String?
+  Recibido_En       DateTime  @default(now())
   ID_Categoria      Int
   ID_Sesion         Int
 

@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { prisma } from "../lib/prisma.js";
 import { EstudianteIdentificado, obtenerProveedor } from "../lib/proveedorToken.js";
 import { authSesion } from "../lib/authSesion.js";
+import { cerrarSocketsSesion } from "./wsSesion.js";
+
 
 export async function sesionesRoutes(app: FastifyInstance) {
     /*
@@ -110,6 +112,10 @@ export async function sesionesRoutes(app: FastifyInstance) {
 
         //6. Marcar el consentimiento si ya lo hab[ia aceptado antes]
         const consentimientoPrevio = estudiante.Consentimiento ? { aceptado: true, fecha: estudiante.Consentimiento_Fecha } : null;
+        const categorias = await prisma.categoria_Incidente.findMany({
+            where: { Nombre_Categoria: { in: JSON.parse(prueba.Categorias_Activas) } },
+            select: { ID_Categoria: true, Nombre_Categoria: true },
+        });
         return reply.status(201).send({
             ID_Sesion: sesion.ID_Sesion,
             Token_Acceso: sesion.Token_Acceso,
@@ -121,7 +127,10 @@ export async function sesionesRoutes(app: FastifyInstance) {
                 duracion_min: prueba.Duracion_Min,
                 asignatura: prueba.asignatura.Nombre_Asignatura,
                 streams: JSON.parse(prueba.Streams_Para_Grabar),
-                categorias: JSON.parse(prueba.Categorias_Activas),
+                categorias: categorias.map((c) => ({
+                    id: c.ID_Categoria,
+                    nombre: c.Nombre_Categoria,
+                })),
             },
             consentimiento_previo: consentimientoPrevio,
         });
@@ -244,6 +253,7 @@ export async function sesionesRoutes(app: FastifyInstance) {
             },
         });
 
+        cerrarSocketsSesion(sesion.ID_Sesion);
         return {
             ID_Sesion: actualizada.ID_Sesion,
             Estado: actualizada.Estado,
