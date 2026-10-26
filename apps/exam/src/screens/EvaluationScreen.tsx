@@ -13,6 +13,7 @@ type EvaluationScreenProps = {
     onCancelModal: () => void;
     onStartQuiz: () => void;
     onLogout: () => void;
+    onBackHome: () => void;
 };
 
 export default function EvaluationScreen({
@@ -25,10 +26,20 @@ export default function EvaluationScreen({
     onCancelModal,
     onStartQuiz,
     onLogout,
+    onBackHome,
 }: EvaluationScreenProps) {
     return (
         <ExamLayout onLogout={onLogout}>
             <section className="panel panel--exam">
+                <p>
+                    <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={onBackHome}
+                    >
+                        Volver al Home
+                    </button>
+                </p>
                 <p className="course-kicker">{course.title}</p>
                 <h1 className="exam-title">{evaluation.title}</h1>
                 <div className="exam-notes">
@@ -53,6 +64,7 @@ export default function EvaluationScreen({
                 onPrepChange={onPrepChange}
                 onCancel={onCancelModal}
                 onStart={onStartQuiz}
+                onBackHome={onBackHome}
             />
         </ExamLayout>
     );

@@ -9,6 +9,7 @@ type PreparationModalProps = {
     onPrepChange: (next: PrepState) => void;
     onCancel: () => void;
     onStart: () => void;
+    onBackHome: () => void;
 };
 
 export default function PreparationModal({
@@ -18,11 +19,12 @@ export default function PreparationModal({
     onPrepChange,
     onCancel,
     onStart,
+    onBackHome,
 }: PreparationModalProps) {
     const titleId = useId();
     const dialogRef = useRef<HTMLDivElement>(null);
     const firstFocusRef = useRef<HTMLInputElement>(null);
-    const cancelRef = useRef<HTMLButtonElement>(null);
+    const homeRef = useRef<HTMLButtonElement>(null);
     const startRef = useRef<HTMLButtonElement>(null);
     const ready = canStartQuiz(prep);
 
@@ -47,7 +49,7 @@ export default function PreparationModal({
             }
 
             const first = firstFocusRef.current;
-            const last = ready ? startRef.current : cancelRef.current;
+            const last = ready ? startRef.current : homeRef.current;
             if (!first || !last) {
                 return;
             }
@@ -147,8 +149,15 @@ export default function PreparationModal({
                 </div>
 
                 <footer className="modal__footer">
-                    <button ref={cancelRef} type="button" className="btn-secondary" onClick={onCancel}>
+                    <button ref={homeRef} type="button" className="btn-secondary" onClick={onCancel}>
                         Cancelar
+                    </button>
+                    <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={onBackHome}
+                    >
+                        Volver al Home
                     </button>
                     <button
                         ref={startRef}

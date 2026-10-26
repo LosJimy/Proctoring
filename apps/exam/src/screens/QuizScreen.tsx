@@ -11,6 +11,7 @@ type QuizScreenProps = {
     onNext: () => void;
     onFinish: () => void;
     onLogout: () => void;
+    onBackHome: () => void;
 };
 
 export default function QuizScreen({
@@ -22,6 +23,7 @@ export default function QuizScreen({
     onNext,
     onFinish,
     onLogout,
+    onBackHome,
 }: QuizScreenProps) {
     const question = questions[questionIndex];
     if (!question) {
@@ -37,6 +39,15 @@ export default function QuizScreen({
     return (
         <ExamLayout onLogout={onLogout}>
             <section className="panel panel--exam">
+                <p>
+                    <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={onBackHome}
+                    >
+                        Volver al Home
+                    </button>
+                </p>
                 <p className="course-kicker">{course.title}</p>
                 <p className="supervision-note">Supervisión de examen — Simulación</p>
                 <div className="quiz-layout">

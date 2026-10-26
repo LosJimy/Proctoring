@@ -61,32 +61,32 @@ export type Question = {
 export const questions: Question[] = [
     {
         id: "pregunta-1",
-        prompt: "Enunciado de demostración pendiente — pregunta 1",
+        prompt: "¿Cuál de los siguientes libros forma parte del Pentateuco?",
         options: [
-            { id: "a", label: "Diez" },
-            { id: "b", label: "Veinte" },
-            { id: "c", label: "Treinta" },
-            { id: "d", label: "Quince" },
+            { id: "a", label: "Salmos" },
+            { id: "b", label: "Génesis" },
+            { id: "c", label: "Isaías" },
+            { id: "d", label: "Proverbios" },
         ],
     },
     {
         id: "pregunta-2",
-        prompt: "Enunciado de demostración pendiente — pregunta 2",
+        prompt: "¿Qué acontecimiento ocupa un lugar central en el libro del Éxodo?",
         options: [
-            { id: "a", label: "Alternativa A" },
-            { id: "b", label: "Alternativa B" },
-            { id: "c", label: "Alternativa C" },
-            { id: "d", label: "Alternativa D" },
+            { id: "a", label: "La construcción del templo de Jerusalén" },
+            { id: "b", label: "El reinado de Salomón" },
+            { id: "c", label: "La salida del pueblo de Israel de Egipto" },
+            { id: "d", label: "La reconstrucción de las murallas de Jerusalén" },
         ],
     },
     {
         id: "pregunta-3",
-        prompt: "Enunciado de demostración pendiente — pregunta 3",
+        prompt: "¿Qué personaje sucede a Moisés como guía del pueblo de Israel?",
         options: [
-            { id: "a", label: "Alternativa A" },
-            { id: "b", label: "Alternativa B" },
-            { id: "c", label: "Alternativa C" },
-            { id: "d", label: "Alternativa D" },
+            { id: "a", label: "David" },
+            { id: "b", label: "Samuel" },
+            { id: "c", label: "Salomón" },
+            { id: "d", label: "Josué" },
         ],
     },
 ];

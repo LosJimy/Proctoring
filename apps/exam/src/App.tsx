@@ -32,6 +32,12 @@ export default function App() {
         setQuestionIndex(0);
     }
 
+    function handleBackHome() {
+        resetAttempt();
+        setSelectedCourseId(null);
+        setView("courses");
+    }
+
     function handleLoginSuccess() {
         saveDemoSession();
         resetAttempt();
@@ -84,7 +90,7 @@ export default function App() {
             <CourseScreen
                 course={selectedCourse}
                 onOpenEvaluation={() => setView("evaluation")}
-                onBackHome={() => setView("courses")}
+                onBackHome={handleBackHome}
                 onLogout={handleLogout}
             />
         );
@@ -105,6 +111,7 @@ export default function App() {
                 onCancelModal={handleCancelModal}
                 onStartQuiz={handleStartQuiz}
                 onLogout={handleLogout}
+                onBackHome={handleBackHome}
             />
         );
     }
@@ -121,6 +128,7 @@ export default function App() {
             onNext={() => setQuestionIndex((index) => index + 1)}
             onFinish={handleFinishQuiz}
             onLogout={handleLogout}
+            onBackHome={handleBackHome}
         />
     );
 }
