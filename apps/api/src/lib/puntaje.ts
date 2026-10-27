@@ -1,5 +1,5 @@
 import { prisma } from "./prisma.js";
-import type { Nivel_Riesgo } from "@prisma/client";
+import type { Nivel_Riesgo, Sesion_Examen } from "@prisma/client";
 
 /**
  * Umbrales de riesgo, en % del maximo posible de la prueba.
@@ -13,6 +13,14 @@ export function calcularNivel(porcentaje: number): Nivel_Riesgo {
     if (porcentaje >= UMBRAL_ALTO) return 'ALTO';
     if (porcentaje >= UMBRAL_MEDIO) return 'MEDIO';
     return 'BAJO';
+}
+
+// Devuelve las reglas de ptje act para una prueba
+export async function reglasPuntaje(idPrueba: number) {
+    return await prisma.categoria_Incidente.findMany({
+        where: { Activo: true },
+        include: { reglas: { where: { Activo: true } } },
+    });
 }
 
 export interface CategoriaActiva {
@@ -78,10 +86,16 @@ export async function calcularAporte(
     aporte: number;
     categoria?: CategoriaActiva
 }> {
-    const categoria = categorias.find((c) => c.ID_Categoria === 'idCategoria');
-    if (!categoria) {
-        return { ok: false, codigo: 'CATEGORIA_NO_ACTIVA', aporte: 0 };
-    }
+    const categoria = await prisma.categoria_Incidente.findUnique({
+        where: { ID_Categoria: idCategoria },
+        include: { reglas: { where: { Activo: true } } },
+    });
+    if (!categoria) return { ok: false, aporte: 0 };
+
+    const regla = categoria.reglas[0];
+    if (!regla) return { ok: false, aporte: 0 };
+
+    const { Minimo, Maximo, Puntaje, Puntaje_Tope } = regla;
 
     const stats = await prisma.incidente.aggregate({
         _count: true,
@@ -89,17 +103,25 @@ export async function calcularAporte(
         where: { ID_Sesion: idSesion, ID_Categoria: idCategoria },
     });
 
-    const n = stats._count + 1;
+    const n = stats._count + 1; //total incidentes incluyendo el nuevo
     const sumaPrevia = stats._sum.Puntaje_Incidente ?? 0;
 
-    const aplicables = Math.max(0, n - categoria.Minimo + 1);
-    const ocurrencias = Math.min(aplicables, categoria.Maximo);
-    const totalCategoria = Math.min(ocurrencias * categoria.Puntaje, categoria.Puntaje_Tope);
+    // A partir del minimo, cada incidente suma puntaje. Hata m[aximo ocurrencias]
+    const aplicables = Math.max(0, n - Minimo + 1);
+    const ocurrencias = Math.min(aplicables, Maximo);
+    const totalCategoria = Math.min(ocurrencias * Puntaje, Puntaje_Tope);
 
     return {
         ok: true,
         aporte: Math.max(0, totalCategoria - sumaPrevia),
-        categoria,
+        categoria: {
+            ID_Categoria: categoria.ID_Categoria,
+            Nombre_Categoria: categoria.Nombre_Categoria,
+            Puntaje,
+            Puntaje_Tope,
+            Minimo,
+            Maximo,
+        },
     };
 }
 

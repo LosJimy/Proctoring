@@ -5,7 +5,7 @@ import { prisma } from "../lib/prisma.js";
 import { EstudianteIdentificado, obtenerProveedor } from "../lib/proveedorToken.js";
 import { authSesion } from "../lib/authSesion.js";
 import { cerrarSocketsSesion } from "./wsSesion.js";
-
+import { resumenSesion } from "../lib/puntaje.js";
 
 export async function sesionesRoutes(app: FastifyInstance) {
     /*
@@ -244,21 +244,27 @@ export async function sesionesRoutes(app: FastifyInstance) {
             ? Math.round((horaFin.getTime() - new Date(sesion.Hora_Inicio).getTime()) / 60000)
             : 0;
 
+        const resumen = await resumenSesion(sesion.ID_Sesion, sesion.ID_Prueba);
+
         const actualizada = await prisma.sesion_Examen.update({
             where: { ID_Sesion: sesion.ID_Sesion },
             data: {
                 Estado: "FINALIZADA",
                 Hora_Fin: horaFin,
                 Duracion_Real: duracionReal,
+                Puntaje_Total: resumen.total,
+                Nivel_Riesgo: resumen.nivel,
             },
         });
 
         cerrarSocketsSesion(sesion.ID_Sesion);
+
         return {
             ID_Sesion: actualizada.ID_Sesion,
             Estado: actualizada.Estado,
             Duracion_Real: actualizada.Duracion_Real,
             Nivel_Riesgo: actualizada.Nivel_Riesgo,
+            Puntaje_Total: actualizada.Puntaje_Total,
         };
     });
 }
