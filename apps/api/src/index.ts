@@ -11,6 +11,7 @@ import multipart from '@fastify/multipart';
 import websocket from '@fastify/websocket';
 import { wsSesionRoutes } from './routes/wsSesion.js';
 import { wsPanelRoutes } from './routes/wsPanel.js';
+import { evidenciaPanelRoutes } from './routes/evidenciaPanel.js';
 
 const app = Fastify({ logger: true });
 
@@ -42,6 +43,7 @@ await app.register(websocket, {
 });
 
 await app.register(evidenciaRoutes);
+await app.register(evidenciaPanelRoutes);
 await app.register(wsSesionRoutes);
 await app.register(wsPanelRoutes);
 await ensureBucket();
