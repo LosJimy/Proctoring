@@ -12,6 +12,7 @@ import websocket from '@fastify/websocket';
 import { wsSesionRoutes } from './routes/wsSesion.js';
 import { wsPanelRoutes } from './routes/wsPanel.js';
 import { evidenciaPanelRoutes } from './routes/evidenciaPanel.js';
+import { incidentesRoutes } from './routes/incidentes.js';
 
 const app = Fastify({ logger: true });
 
@@ -46,6 +47,7 @@ await app.register(evidenciaRoutes);
 await app.register(evidenciaPanelRoutes);
 await app.register(wsSesionRoutes);
 await app.register(wsPanelRoutes);
+await app.register(incidentesRoutes);
 await ensureBucket();
 
 app.get('/api/db-test', async () => {
