@@ -1,6 +1,6 @@
 # ICRF Proctoring — Backend
 
-Sistema de proctoring (monitoreo de exámenes en línea) desarrollado para la Universidad Católica del Norte, integrado con Moodle Campus Virtual y diseñado bajo los estándares de la Ley 21.719 (Chile).
+Sistema de proctoring (monitoreo de exámenes en línea) desarrollado para la UCN, integrado con Moodle Campus Virtual y diseñado bajo los estándares de la Ley 21.719.
 
 ---
 
