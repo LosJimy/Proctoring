@@ -11,6 +11,6 @@ redis.on('error', (err) => {
     console.error('[redis] error:', err.message);
 });
 
-export async function publicarPanel(mesaje: unkown): Promise<void> {
+export async function publicarPanel(mensaje: unknown): Promise<void> {
     await redis.publish(CANAL_PANEL, JSON.stringify(mensaje));
 }

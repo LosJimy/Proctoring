@@ -20,12 +20,12 @@ function enviar(ws: WSMinimo, mensaje: unknown): void {
 
 export async function wsPanelRoutes(app: FastifyInstance) {
     /**
-     * Conexion dedicada a Redis
-     * modo suscirber no puede ejcutar otros comandos
-     * por eso no se puede usar la de publicar
+- Conexion dedicada a Redis
+- modo suscirber no puede ejcutar otros comandos
+- por eso no se puede usar la de publicar
      */
     const suscriptor = redis.duplicate();
-    suscriptor.on('error', (err) => app.log.error({ err: err.message }, 'redis suscriptor'));
+    suscriptor.on('error', (err: Error) => app.log.error({ err: err.message }, 'redis suscriptor'));
 
     try {
         await suscriptor.subscribe(CANAL_PANEL);
@@ -35,7 +35,7 @@ export async function wsPanelRoutes(app: FastifyInstance) {
 
     const clientes = new Set<WSMinimo>();
 
-    suscriptor.on('message', (canal, mensaje) => {
+    suscriptor.on('message', (canal: string, mensaje: string) => {
         for (const c of clientes) {
             try {
                 c.send(mensaje);
@@ -77,7 +77,7 @@ export async function wsPanelRoutes(app: FastifyInstance) {
             }
 
             try {
-                const payload = req.jwtVerify<{ sub: number }>(msg.token);
+                const payload = await req.jwtVerify<{ sub: number }>();
                 const usuario = await prisma.usuario.findUnique({
                     where: { ID_Usuario: payload.sub },
                 });
@@ -118,4 +118,3 @@ export async function wsPanelRoutes(app: FastifyInstance) {
         });
     });
 }
-

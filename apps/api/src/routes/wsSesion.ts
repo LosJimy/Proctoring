@@ -14,8 +14,8 @@ const ORIGENES_PERMITIDOS = (process.env.WS_ORIGENS || 'http://localhost:5173')
     .filter(Boolean);
 
 /**
- * Tipo minimo del socket. Evita importar tipos de 'ws' 
- * (dependencia transittiva).
+- Tipo minimo del socket. Evita importar tipos de 'ws' 
+- (dependencia transittiva).
  */
 interface WSMinimo {
     send(datos: string): void;
@@ -24,7 +24,7 @@ interface WSMinimo {
 }
 
 /**
- * Sockets abiertos por sesion, para poder cerrarlos al finalizar el examen
+- Sockets abiertos por sesion, para poder cerrarlos al finalizar el examen
  */
 const socketsPorSesion = new Map<number, Set<WSMinimo>>();
 
@@ -77,7 +77,8 @@ function cerrarConError(ws: WSMinimo, codigo: string): void {
 export async function wsSesionRoutes(app: FastifyInstance) {
     app.get('/ws/sesion/:id', { websocket: true }, (socket, req) => {
         const ws = socket as unknown as WSMinimo;
-        const idSesionParam = Number(String(req.params.id));
+        const params = req.params as { id: string };
+        const idSesionParam = Number(String(params.id));
 
         //Oirgne permitido (evita que otra pag se conecte)
         const origin = req.headers.origin;
@@ -162,11 +163,6 @@ export async function wsSesionRoutes(app: FastifyInstance) {
         });
 
         ws.on('close', () => {
-            clearTimeout(timeoutAuth);
-            if (sesion) socketsPorSesion.get(sesion.ID_Sesion)?.delete(ws);
-        });
-
-        ws.on('error', () => {
             clearTimeout(timeoutAuth);
             if (sesion) socketsPorSesion.get(sesion.ID_Sesion)?.delete(ws);
         });
