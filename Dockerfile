@@ -7,6 +7,8 @@ COPY apps/ ./apps/
 COPY packages/ ./packages/
 
 RUN pnpm install --frozen-lockfile
+RUN pnpm --filter api prisma generate
+
 RUN pnpm --filter api build
 
 FROM node:18-alpine
