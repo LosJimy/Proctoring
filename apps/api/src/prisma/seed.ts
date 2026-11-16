@@ -195,6 +195,26 @@ async function main() {
             });
         }
     }
+    /*
+        * PRUEBA EN CURSO (para poder probar el examen en cualquier momento)
+        */
+    const ahora = new Date();
+    await prisma.prueba.create({
+        data: {
+            Nombre_Prueba: 'Evaluacion en curso - Iniciacion Biblica',
+            Fecha: new Date(ahora.getTime() - 10 * 60 * 1000), // empezó hace 10 minutos
+            Duracion_Min: 90,
+            Requiere_Proctoring: true,
+            Streams_Para_Grabar: JSON.stringify(['CAMARA', 'PANTALLA']),
+            Categorias_Activas: JSON.stringify(categorias.map((c) => c.nombre)),
+            ID_Asignatura: asignaturas[0]!.ID_Asignatura,
+        },
+    });
+
+    await prisma.$executeRaw`ALTER SEQUENCE "Prueba_ID_Prueba_seq" RESTART WITH 1`;
+    await prisma.$executeRaw`ALTER SEQUENCE "Estudiante_ID_Estudiante_seq" RESTART WITH 1`;
+    await prisma.$executeRaw`ALTER SEQUENCE "Sesion_Examen_ID_Sesion_seq" RESTART WITH 1`;
+    await prisma.$executeRaw`ALTER SEQUENCE "Usuario_ID_Usuario_seq" RESTART WITH 1`;
     // =============
     // RESUMEN
     // =============
@@ -219,3 +239,5 @@ main()
         await prisma.$disconnect();
         process.exit(1);
     });
+
+

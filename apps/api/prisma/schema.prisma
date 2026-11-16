@@ -170,6 +170,7 @@ model Sesion_Examen {
 
   grabaciones Grabacion[]
   incidentes  Incidente[]
+  latidos Heartbeat[]
 }
 
 model Revision_Incidente {
@@ -206,6 +207,7 @@ model Grabacion {
   ID_Grabacion        Int      @id @default(autoincrement())
   Tipo_Stream         Tipo_Stream
   Indice_Chunk        Int
+  Timestamp           DateTime
   Ruta_Video          String   @unique
   Hash_Sha256         String?
   Fecha_Eliminacion_Programada DateTime?
@@ -227,12 +229,14 @@ model Grabacion {
 
 model Incidente {
   ID_Incidente      Int @id @default(autoincrement())
+  Clave_Cliente     String  @unique
   Descripcion       String?
   Tiempo            DateTime @default(now())
   Duracion          Float
   Puntaje_Incidente Float    @default(0)
   Probabilidad      Float
   Metadatos         String?
+  Recibido_En       DateTime  @default(now())
   ID_Categoria      Int
   ID_Sesion         Int
 
@@ -244,6 +248,15 @@ model Incidente {
   @@index([ID_Sesion, Tiempo])
   @@index([ID_Categoria])
   @@index([Tiempo])
+}
+
+model Heartbeat {
+  ID_Heartbeat Int      @id @default(autoincrement())
+  Fecha DateTime @default(now())
+  IP String?
+  ID_Sesion    Int
+  sesion Sesion_Examen @relation(fields: [ID_Sesion], references: [ID_Sesion], onDelete: Cascade)
+  @@index([ID_Sesion, Fecha])
 }
 
 // ============================================================
