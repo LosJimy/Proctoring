@@ -7,7 +7,7 @@ export const redis = new Redis(REDIS_URL, {
     maxRetriesPerRequest: null,
 });
 
-redis.on('error', (err) => {
+redis.on('error', (err: Error) => {
     console.error('[redis] error:', err.message);
 });
 
